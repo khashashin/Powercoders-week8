@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Chat.js</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <style>
+        body {
+            background: -webkit-linear-gradient(top, #dfffe8 100px, #97c49a 300px) no-repeat, #97c49a;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Forma dlya otpravki soobsheniya -->
+    <form name="publish">
+        <input type="text" name="message">
+        <input type="submit" value="Send">
+    </form>
+
+    <!-- Zdes' budut poyavlyatsya vhodyashie soobsheniya -->
+    <div id="subscribe"></div>
+
+    <script>
+
+        // Sozdaem podklyuchenie
+        var socket = new WebSocket('ws://localhost:8080/socket');
+
+        socket.addEventListener('open', function() {
+            console.log('Connected to server');
+            socket.send('Hello from browser');
+        });
+
+        socket.addEventListener('message', function(message) {
+            console.log('got message from server', message);
+            console.log('with data', message.data);
+        });
+
+        socket.addEventListener('close', function() {
+            console.log('Disconnected from server: ' + socket);
+        });
+
+        //Tut pishem nash Code
+
+        //Tut script peredaet soobshenie iz formy publish v sozdannoe nami znachenie outgoingMessage
+        document.forms.publish.onsubmit = function() {
+            var outgoingMessage = this.message.value;
+
+            socket.send(outgoingMessage);
+            return false;
+        };
+
+        //Tut skript obrabatyvaet zahvachennoe soobshenie
+        socket.onmessage = function(event) {
+            var incomingMessage = event.data;
+            showMessage(incomingMessage);
+        };
+
+
+        //Tut postroena funkciya kotoraya vvyvodit soobshenie v div s id subscribe
+        function showMessage(message) {
+            var messageElem = document.createElement('div');
+            messageElem.appendChild(document.createTextNode(message));
+            document.getElementById('subscribe').appendChild(messageElem);
+        };
+    </script>
+
+</body>
+
+</html>
